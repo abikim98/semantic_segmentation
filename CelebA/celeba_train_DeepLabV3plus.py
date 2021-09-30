@@ -7,17 +7,12 @@
 # 1-1 CelebAMask 이미지 라벨만들기
 # 
 
-# In[1]:
-
 
 import os
 import cv2
 import numpy as np
 from glob import glob
 from tqdm import tqdm
-
-
-# In[2]:
 
 
 label_list = ['skin', 'nose', 'eye_g', 'l_eye', 'r_eye', 'l_brow', 'r_brow', 'l_ear', 'r_ear', 'mouth', 'u_lip', 'l_lip', 'hair', 'hat', 'ear_r', 'neck_l', 'neck', 'cloth']
@@ -41,28 +36,18 @@ for k in tqdm(range(img_num)):
 
 # 1-1-1 mask를 train valid 로 나누기
 
-# In[2]:
-
 
 for path in glob('./CelebAdataset/*'):
     print(len(glob(path+'/*')))
-
-
-# In[3]:
 
 
 all_mask = glob('./CelebAdataset/CelebAMask-HQ/CelebAMask_label/*')
 print(len(all_mask))
 
 
-# In[4]:
-
 
 import random
 random.shuffle(all_mask)
-
-
-# In[5]:
 
 
 cnt = int(len(all_mask)*0.9)
@@ -72,15 +57,10 @@ print(len(train))
 print(len(valid))
 
 
-# In[10]:
-
-
 import shutil
 for path in tqdm(train):
     shutil.copy(path, path.replace('./CelebAdataset/CelebAMask-HQ/CelebAMask_label', './CelebAdataset/CelebAMask-HQ/train_mask'))
 
-
-# In[12]:
 
 
 import shutil
@@ -89,9 +69,6 @@ for path in tqdm(valid):
 
 
 # 1-2 image dataset/loader 정의
-
-# In[6]:
-
 
 import os
 import copy
@@ -108,13 +85,8 @@ from torch.optim import lr_scheduler
 from torchvision import transforms
 
 
-# In[7]:
-
-
 import numpy as np
 
-
-# In[8]:
 
 
 class CelebAMaskDataset():
@@ -139,8 +111,6 @@ class CelebAMaskDataset():
         return len(self.dataset)
 
 
-# In[9]:
-
 
 transform_Image = transforms.Compose([
         transforms.Resize(512),
@@ -152,21 +122,15 @@ transform_Label = transforms.Compose([
     ])
 
 
-# In[10]:
-
 
 train_dataset = CelebAMaskDataset('./CelebAdataset/CelebAMask-HQ/CelebA-HQ-img', './CelebAdataset/CelebAMask-HQ/train_mask', transform_Image, transform_Label)
 valid_dataset = CelebAMaskDataset('./CelebAdataset/CelebAMask-HQ/CelebA-HQ-img', './CelebAdataset/CelebAMask-HQ/valid_mask', transform_Image, transform_Label)
 
 
-# In[11]:
-
 
 train_dataloaders = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=8)
 valid_dataloaders = torch.utils.data.DataLoader(valid_dataset, batch_size=4, shuffle=False, num_workers=8)
 
-
-# In[12]:
 
 
 dataset = iter(train_dataset)
@@ -185,7 +149,6 @@ print(label*255)
 
 # 1-3 model
 
-# In[13]:
 
 
 import segmentation_models_pytorch as smp
@@ -195,7 +158,6 @@ model = smp.DeepLabV3Plus(classes=19)
 model.to(device)
 
 
-# In[14]:
 
 
 import torch.nn.functional as F
@@ -212,8 +174,6 @@ def cross_entropy2d(input, target, weight=None, size_average=True):
     return loss
 
 
-# In[15]:
-
 
 criterion = nn.CrossEntropyLoss(ignore_index=255)
 optimizer = optim.Adam(model.parameters(), 0.0002, [.5, .999])
@@ -221,7 +181,6 @@ scheduler=None
 num_epochs=50
 
 
-# In[16]:
 
 
 def generate_label_plain(inputs, imsize=512):
@@ -243,7 +202,6 @@ def generate_label_plain(inputs, imsize=512):
     return label_batch
 
 
-# In[17]:
 
 
 best_model_wts = copy.deepcopy(model.state_dict())
@@ -316,10 +274,3 @@ for epoch in range(num_epochs):
         best_epoch = epoch
         best_model_wts = copy.deepcopy(model.state_dict())
     print('-'*10, f"best epoch : {best_epoch}", '-'*10)
-
-
-# In[ ]:
-
-
-
-
